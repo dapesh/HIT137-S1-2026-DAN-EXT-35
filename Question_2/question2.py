@@ -231,6 +231,7 @@ def evaluate_file(input_path: str) -> list[dict]:
 
 	lines = input_file.read_text(encoding="utf-8").splitlines()
 	if lines:
+        # remove invisible characters form the start fo the files 
 		lines[0] = lines[0].lstrip("\ufeff")
 	results = [evaluate_line(line) for line in lines]
 
@@ -256,13 +257,15 @@ def evaluate_file(input_path: str) -> list[dict]:
 
 
 def main() -> None:
-	if len(sys.argv) != 2:
-		print("Usage: python question2.py <input_file>")
-		return
+    if len(sys.argv) != 2:
+        print("Usage: python question2.py <input_file>")
+        return
 
-	results = evaluate_file(sys.argv[1])
-	print(f"Processed {len(results)} expressions.")
+    print(sys.argv[1])
+
+    results = evaluate_file(sys.argv[1])
+    print(f"Processed {len(results)} expressions.")
 
 
 if __name__ == "__main__":
-	main()
+    main()
