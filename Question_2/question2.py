@@ -5,6 +5,7 @@ import sys
 
 
 def format_number(value: float) -> str:
+	"""Format numbers for tree nodes without unnecessary trailing zeros."""
 	if float(value).is_integer():
 		return str(int(value))
 	text = f"{value:.10f}".rstrip("0").rstrip(".")
@@ -12,12 +13,14 @@ def format_number(value: float) -> str:
 
 
 def format_result(value: float) -> str:
+	"""Format successful results as int or 4-decimal float."""
 	if float(value).is_integer():
 		return str(int(value))
 	return f"{value:.4f}"
 
 
 def tokenize(expression: str) -> list[dict]:
+	"""Convert input text into evaluator tokens."""
 	tokens: list[dict] = []
 	i = 0
 	n = len(expression)
@@ -76,6 +79,7 @@ def tokenize(expression: str) -> list[dict]:
 
 
 def tokens_to_output(tokens: list[dict]) -> str:
+	"""Render tokens in the required [TYPE:value] output format."""
 	parts: list[str] = []
 	for token in tokens:
 		token_type = token["type"]
@@ -93,6 +97,7 @@ def tokens_to_output(tokens: list[dict]) -> str:
 
 
 def evaluate_tokens(tokens: list[dict]) -> tuple[str, float]:
+	"""Parse and evaluate using recursive descent precedence levels."""
 	pos = 0
 
 	def current() -> dict:
@@ -190,6 +195,7 @@ def evaluate_tokens(tokens: list[dict]) -> tuple[str, float]:
 
 
 def evaluate_line(expression: str) -> dict:
+	"""Evaluate one expression and return the assignment result dictionary."""
 	tokens: list[dict] | None = None
 	try:
 		tokens = tokenize(expression)
@@ -226,12 +232,13 @@ def evaluate_line(expression: str) -> dict:
 
 
 def evaluate_file(input_path: str) -> list[dict]:
+	"""Evaluate all expressions from a file and write output.txt nearby."""
 	input_file = Path(input_path)
 	output_file = input_file.parent / "output.txt"
 
 	lines = input_file.read_text(encoding="utf-8").splitlines()
 	if lines:
-        # remove invisible characters form the start fo the files 
+		# Remove an optional UTF-8 BOM from the first line.
 		lines[0] = lines[0].lstrip("\ufeff")
 	results = [evaluate_line(line) for line in lines]
 
@@ -257,14 +264,13 @@ def evaluate_file(input_path: str) -> list[dict]:
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
-        print("Usage: python question2.py <input_file>")
-        return
+	"""CLI entry point for running Question 2 evaluator."""
+	if len(sys.argv) != 2:
+		print("Usage: python question2.py <input_file>")
+		return
 
-    print(sys.argv[1])
-
-    results = evaluate_file(sys.argv[1])
-    print(f"Processed {len(results)} expressions.")
+	results = evaluate_file(sys.argv[1])
+	print(f"Processed {len(results)} expressions.")
 
 
 if __name__ == "__main__":
