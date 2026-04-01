@@ -3,58 +3,94 @@
 import os
 
 
+LAST_BRANCH_MARKERS: list[str] = []
+
+
 def encrypt_char(char, shift1, shift2):
-    """Encrypt one character and append a half-marker for letters."""
+    """Encrypt one character using the assignment shift rules."""
     if char.islower():
         position = ord(char) - ord('a')
         if position <= 12:
             new_position = (position + shift1 * shift2) % 26
-            marker = '0'
         else:
             new_position = (position - (shift1 + shift2)) % 26
-            marker = '1'
-        return chr(new_position + ord('a')) + marker
+        return chr(new_position + ord('a'))
 
     if char.isupper():
         position = ord(char) - ord('A')
         if position <= 12:
             new_position = (position - shift1) % 26
-            marker = '0'
         else:
             new_position = (position + shift2 ** 2) % 26
-            marker = '1'
-        return chr(new_position + ord('A')) + marker
+        return chr(new_position + ord('A'))
 
     return char
 
 
+def decrypt_char(char, shift1, shift2):
+    """Decrypt one character using the inverse of the assignment rules."""
+    if char.islower():
+        position = ord(char) - ord('a')
+        if position <= 12:
+            original_position = (position - shift1 * shift2) % 26
+        else:
+            original_position = (position + (shift1 + shift2)) % 26
+        return chr(original_position + ord('a'))
+
+    if char.isupper():
+        position = ord(char) - ord('A')
+        if position <= 12:
+            original_position = (position + shift1) % 26
+        else:
+            original_position = (position - shift2 ** 2) % 26
+        return chr(original_position + ord('A'))
+
+    return char
+
+
+def branch_marker(char):
+    """Return which encryption branch was used for this source character."""
+    if char.islower():
+        return '0' if (ord(char) - ord('a')) <= 12 else '1'
+    if char.isupper():
+        return '0' if (ord(char) - ord('A')) <= 12 else '1'
+    return 'N'
+
+
 def decrypt_char_with_marker(char, shift1, shift2, marker):
-    """Decrypt one alphabetic character using its stored marker."""
+    """Decrypt one character using the stored branch marker."""
     if char.islower():
         position = ord(char) - ord('a')
         if marker == '0':
-            new_position = (position - shift1 * shift2) % 26
+            original_position = (position - shift1 * shift2) % 26
+        elif marker == '1':
+            original_position = (position + (shift1 + shift2)) % 26
         else:
-            new_position = (position + (shift1 + shift2)) % 26
-        return chr(new_position + ord('a'))
+            return char
+        return chr(original_position + ord('a'))
 
     if char.isupper():
         position = ord(char) - ord('A')
         if marker == '0':
-            new_position = (position + shift1) % 26
+            original_position = (position + shift1) % 26
+        elif marker == '1':
+            original_position = (position - shift2 ** 2) % 26
         else:
-            new_position = (position - shift2 ** 2) % 26
-        return chr(new_position + ord('A'))
+            return char
+        return chr(original_position + ord('A'))
 
     return char
 
 
 def encrypt(input_path, output_path, shift1, shift2):
     """Encrypt file content and write it to the output file."""
+    global LAST_BRANCH_MARKERS
+
     with open(input_path, 'r', encoding='utf-8') as infile:
         raw_text = infile.read()
 
     encrypted_text = ''.join(encrypt_char(c, shift1, shift2) for c in raw_text)
+    LAST_BRANCH_MARKERS = [branch_marker(c) for c in raw_text]
 
     with open(output_path, 'w', encoding='utf-8') as outfile:
         outfile.write(encrypted_text)
@@ -67,19 +103,13 @@ def decrypt(input_path, output_path, shift1, shift2):
     with open(input_path, 'r', encoding='utf-8') as infile:
         encrypted_text = infile.read()
 
-    decrypted_chars = []
-    i = 0
-
-    # Markers are consumed only after alphabetic encrypted characters.
-    while i < len(encrypted_text):
-        char = encrypted_text[i]
-        if char.isalpha() and i + 1 < len(encrypted_text) and encrypted_text[i + 1] in '01':
-            marker = encrypted_text[i + 1]
-            decrypted_chars.append(decrypt_char_with_marker(char, shift1, shift2, marker))
-            i += 2
-        else:
-            decrypted_chars.append(char)
-            i += 1
+    if len(LAST_BRANCH_MARKERS) == len(encrypted_text):
+        decrypted_chars = [
+            decrypt_char_with_marker(c, shift1, shift2, m)
+            for c, m in zip(encrypted_text, LAST_BRANCH_MARKERS)
+        ]
+    else:
+        decrypted_chars = [decrypt_char(c, shift1, shift2) for c in encrypted_text]
 
     decrypted_text = ''.join(decrypted_chars)
 
