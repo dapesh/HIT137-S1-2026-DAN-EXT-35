@@ -28,14 +28,20 @@ def encrypt_char(char, shift1, shift2):
 
 
 def decrypt_char(char, shift1, shift2):
-    """Decrypt one character using the inverse of the assignment rules."""
-    if char.islower():
-        position = ord(char) - ord('a')
-        if position <= 12:
-            original_position = (position - shift1 * shift2) % 26
-        else:
-            original_position = (position + (shift1 + shift2)) % 26
-        return chr(original_position + ord('a'))
+    """Decrypt a single lowercase character based on given shift rules."""
+    
+    if not char.islower():
+        return char  # return unchanged if not lowercase
+
+    pos = ord(char) - ord('a')
+
+    # Apply inverse rules
+    if pos <= 12:
+        pos = (pos - (shift1 * shift2)) % 26
+    else:
+        pos = (pos + (shift1 + shift2)) % 26
+
+    return chr(pos + ord('a'))
 
     if char.isupper():
         position = ord(char) - ord('A')
