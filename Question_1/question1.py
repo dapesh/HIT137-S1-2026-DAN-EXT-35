@@ -6,19 +6,23 @@ import os
 LAST_BRANCH_MARKERS: list[str] = []
 
 
-def encrypt_char(char, shift1, shift2):
-    """Encrypt a single lowercase character based on its alphabet position."""
-    if 'a' <= char <= 'z':
-        index = ord(char) - 97
+def encrypt_char(char, shift1, shift2): 
 
-        if index < 13:
-            index = (index + (shift1 * shift2)) % 26
-        else:
-            index = (index - (shift1 + shift2)) % 26
+    """Encrypt one character using the assignment shift rules.""" 
 
-        return chr(index + 97)
+    if char.islower(): 
 
-    return char
+        position = ord(char) - ord('a') 
+
+        if position <= 12: 
+
+            new_position = (position + shift1 * shift2) % 26 
+
+        else: 
+
+            new_position = (position - (shift1 + shift2)) % 26 
+
+        return chr(new_position + ord('a')) 
 
     if char.isupper():
         position = ord(char) - ord('A')
